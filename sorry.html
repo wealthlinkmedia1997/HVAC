@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>We Can't Help Just Yet | HVAC Marketing Center</title>
+<meta name="description" content="HVAC Marketing Center works with established HVAC companies that want exclusive inbound calls instead of shared leads.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
+<link rel="stylesheet" href="css/style.css?v=1">
+<script src="js/config.js?v=1"></script>
+</head>
+<body>
+<div class="wrap page-short">
+
+  <div class="logo" id="logo"></div>
+
+  <h1>Sorry, We Can't Help Just Yet</h1>
+
+  <p class="page-copy" id="sorryCopy">
+    Appreciate you reaching out about exclusive HVAC calls. We only work with
+    established HVAC companies doing $300K or more a year right now, so we're not
+    the right fit yet. Keep building and come back when you're there.
+  </p>
+
+  <footer>© 2026 HVAC Marketing Center, a WealthLink Media company | All Rights Reserved · <a href="privacy.html">Privacy Policy</a></footer>
+</div>
+
+<script src="js/main.js?v=1"></script>
+<script>
+  renderLogo(document.getElementById("logo"));
+
+  (function () {
+    var name = getLeadFirstName();
+    if (!name) return;
+    var el = document.getElementById("sorryCopy");
+    el.textContent = "Hey " + name + ", a" + el.textContent.trim().slice(1);
+  })();
+</script>
+
+</body></html>

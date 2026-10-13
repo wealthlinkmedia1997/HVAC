@@ -1,0 +1,1233 @@
+/* RankFlow Funnel — shared styles. Deliberately plain: system fonts,
+   minimal shadows, no animation libraries. Keeps it fast and matches the
+   "basic, not fancy" brief. */
+
+:root {
+  /* HVAC Marketing Center. Navy structure, cool blue accents, heat-orange CTAs. */
+  --navy: #0B1F3A;
+  --blue: #1E88E5;
+  --blue-dark: #1565C0;
+  --orange: #FF6B1A;
+  --orange-dark: #E2550A;
+  --gold: #FF6B1A;
+  --text: #0B1F3A;
+  --text-muted: #4A5A70;
+  --border: #D5DEE8;
+  --bg: #F4F6F9;
+  --surface: #ffffff;
+  --ink: #0B1F3A;
+  --max-width: 520px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.4;
+  overflow-x: hidden; /* the testimonial-grid breakout below uses a 100vw
+    trick that can overflow by the scrollbar's width - this is the standard,
+    safe guard against that turning into page-wide horizontal scroll */
+}
+
+.wrap {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 12px 20px 48px;
+}
+
+img, video, iframe {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.logo-img {
+  width: 240px;
+  height: auto;
+}
+.thankyou-header a,
+.logo a {
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Headings */
+/* Full-bleed banner bar - lives outside .wrap in the markup so it isn't
+   constrained by its padding on any side (top included). */
+.hero-kicker {
+  background: var(--navy);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin: 0 0 20px;
+  padding: 16px 20px;
+  border-bottom: 4px solid var(--orange);
+}
+
+/* Full-bleed banner carrying the real logo, used at the top of the
+   thank-you page - same "lives outside .wrap" pattern as .hero-kicker. */
+.thankyou-header {
+  background: var(--bg);
+  border-bottom: 4px solid var(--navy);
+  text-align: center;
+  padding: 22px 20px 18px;
+  margin: 0 0 28px;
+}
+.thankyou-header .logo-img {
+  width: 220px;
+  margin: 0 auto;
+}
+
+/* Big circular checkmark on the thank-you page */
+.success-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 20px rgba(255, 107, 26, 0.28);
+}
+
+.confirmed-phone-big {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+.confirmed-phone-big a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+/* Small caption under the explainer video, and the divider/CTA-box pattern
+   that replaces the inline calendar embeds below */
+.video-caption {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 8px 0 20px;
+}
+.cta-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--orange);
+  border-radius: 20px;
+  padding: 28px 20px;
+  text-align: center;
+  margin: 8px 0 28px;
+  box-shadow: 0 12px 32px rgba(11, 31, 58, 0.08);
+}
+.cta-badge {
+  display: inline-block;
+  background: var(--orange);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin: 0 0 14px;
+}
+.cta-box-heading {
+  font-size: clamp(22px, 6vw, 28px);
+  line-height: 1.15;
+  text-align: center;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+h1 {
+  font-size: 30px;
+  line-height: 1.15;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--navy);
+}
+h1 .accent {
+  color: var(--orange);
+}
+h2 {
+  font-size: 20px;
+  text-align: center;
+  margin: 32px 0 16px;
+}
+
+/* Guarantee text */
+.guarantee {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.guarantee p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 16px 18px;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(255, 107, 26, 0.28);
+}
+.btn:hover, .btn:focus {
+  background: var(--orange-dark);
+  color: #fff;
+}
+.cta-box .btn,
+.lead-form .btn {
+  width: 100%;
+  min-width: 0;
+}
+.wrap > .btn {
+  margin: 8px auto 28px;
+}
+
+.fine-print {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 10px 0 0;
+}
+
+/* Star rating + review line, shown under every CTA button */
+.stars-row {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 14px 0 0;
+}
+.stars-row .stars {
+  color: #5a8f3d;
+  letter-spacing: 1px;
+  margin-right: 3px;
+}
+
+.gold-divider {
+  width: 60px;
+  height: 3px;
+  background: var(--gold);
+  border: none;
+  border-radius: 2px;
+  margin: 36px auto;
+}
+
+.section-heading {
+  text-align: center;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.3;
+  margin: 0 0 24px;
+}
+
+/* Sticky bottom CTA bar: fixed off-screen by default, slides up when
+   .visible is toggled on by wireStickyCta() in main.js */
+.sticky-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+  z-index: 500;
+}
+.sticky-cta.visible {
+  transform: translateY(0);
+}
+.sticky-cta .btn {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+.sticky-cta .stars-row {
+  margin-top: 8px;
+}
+
+/* Video testimonial card */
+.video-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: #1a1a1a;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+.video-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.play-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: #fff;
+  margin-left: 3px;
+}
+.video-placeholder-label {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  color: #ccc;
+  font-size: 11px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.testimonial-quote {
+  text-align: center;
+  font-weight: 700;
+  font-size: 18px;
+  margin: 10px 0 2px;
+}
+.testimonial-attribution {
+  text-align: center;
+  font-weight: 700;
+  font-size: 18px;
+  margin: 0 0 28px;
+  margin-top: 20px !important;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 24px 16px;
+}
+.modal-overlay.open {
+  display: flex;
+}
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f1f3;
+  border-radius: 50%;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+}
+.modal h2 {
+  margin: 0 0 10px !important;
+  font-size: 26px;
+  font-weight: 800;
+  text-align: center;
+}
+.modal-sub {
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+
+.field {
+  margin-bottom: 18px;
+}
+.field label {
+  display: block;
+  text-align: left;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.field input[type="text"],
+.field input[type="tel"] {
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+.radio-option input {
+  width: 16px;
+  height: 16px;
+}
+
+/* Booking page pieces */
+.report-heading {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  margin: 8px 0 8px;
+}
+.report-subheading {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+.step-bar {
+  background: var(--navy);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.35;
+  white-space: normal;
+  padding: 12px 14px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+.step-bar u {
+  text-decoration: underline;
+}
+
+.explainer-video-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.explainer-caption {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  text-align: center;
+}
+
+.step2-heading {
+  text-align: center;
+  font-weight: 700;
+  font-size: 18px;
+  margin: 16px 0 12px;
+}
+
+.calendar-card {
+  /* No border or padding: GHL's embed renders its own bordered card, so a
+     frame here would double up. Kept as a plain spacing wrapper. */
+  margin-bottom: 32px;
+}
+.calendar-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.calendar-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ddd;
+  flex-shrink: 0;
+}
+.calendar-card-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.calendar-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.calendar-meta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.calendar-embed-container {
+  min-height: 0;
+}
+.calendar-embed-container iframe {
+  min-height: 750px;
+}
+.calendar-loading {
+  text-align: center;
+  color: var(--navy);
+  background: var(--surface);
+  border: 1px dashed var(--blue);
+  border-radius: 12px;
+  padding: 28px 16px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Sorry / thank-you pages */
+.center-text {
+  text-align: left;
+}
+.center-text h1 {
+  text-align: left;
+  font-size: 24px;
+}
+.center-text p {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.confirmed-phone {
+  font-weight: 700;
+}
+
+footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 32px;
+}
+footer a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+/* ============================================================
+   Desktop / tablet — this was built mobile-first (every reference
+   screenshot was a phone screenshot) and looked like a thin stripe
+   of content in a sea of white on a real desktop screen. This
+   widens things in two tiers rather than stretching everything to
+   full width, which would look worse, not better:
+     - single-column content (hero, form, calendar) gets modestly
+       wider and slightly larger type
+     - testimonials break out into a multi-column grid, since
+       stacking vertical phone videos full-width on a 1440px screen
+       is its own kind of ugly
+   ============================================================ */
+@media (min-width: 700px) {
+  .wrap {
+    max-width: 640px;
+    padding-top: 24px;
+  }
+  .hero-kicker {
+    font-size: 18px;
+  }
+  h1 {
+    font-size: 34px;
+  }
+  .step-heading {
+    font-size: 24px;
+  }
+  .report-heading {
+    font-size: 26px;
+  }
+  .social-proof-cta {
+    font-size: 19px;
+  }
+  .btn {
+    width: auto;
+    min-width: 320px;
+    margin: 0 auto;
+  }
+  .fine-print,
+  .social-proof-cta {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (min-width: 900px) {
+  .testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px 20px;
+    align-items: start;
+    /* Break out of the narrower .wrap parent and self-center on the
+       viewport. Using left:50% + translateX(-50%) instead of a plain
+       negative-vw margin because the latter only centers correctly when
+       the element ends up exactly 100vw wide - here max-width caps it
+       narrower than that on anything wider than ~1100px, and a fixed
+       margin doesn't adapt to that the way a transform percentage
+       (relative to the element's own final width) does. */
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    max-width: 1100px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  #closing-testimonial {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ============================================================
+   Progressive lead form — fields expand/collapse instead of
+   popping in. Height is animated with the grid 0fr -> 1fr trick
+   (transitionable, unlike height:auto). .field-inner needs
+   overflow:hidden for that to clip cleanly, so .is-open flips it
+   back to visible once the animation is done - otherwise the
+   Places dropdown gets cut off by its own parent.
+   ============================================================ */
+.lead-form .field {
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-bottom: 18px;
+  opacity: 1;
+  transition: grid-template-rows .38s cubic-bezier(.22,.61,.36,1),
+              opacity .26s ease,
+              margin-bottom .38s cubic-bezier(.22,.61,.36,1),
+              filter .26s ease;
+}
+.lead-form .field > .field-inner {
+  min-height: 0;
+  overflow: hidden;
+  transform: translateY(0);
+  transition: transform .38s cubic-bezier(.22,.61,.36,1), visibility 0s;
+}
+.lead-form .field.is-open > .field-inner {
+  overflow: visible;
+}
+.lead-form .field.is-hidden {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-bottom: 0;
+  filter: blur(3px);
+  pointer-events: none;
+}
+.lead-form .field.is-hidden > .field-inner {
+  transform: translateY(-10px);
+  visibility: hidden;
+  transition: transform .38s cubic-bezier(.22,.61,.36,1), visibility 0s linear .38s;
+}
+
+/* green tick on a completed field */
+.lead-form .field > .field-inner > label {
+  transition: color .2s ease;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  font-size: 12px;
+  font-weight: 800;
+}
+.lead-form .field.is-done > .field-inner > label::after {
+  content: "✓";
+  color: #2e9e4f;
+  margin-left: 7px;
+  font-size: 13px;
+  animation: tickIn .3s cubic-bezier(.34,1.56,.64,1);
+  display: inline-block;
+}
+@keyframes tickIn {
+  from { transform: scale(0) rotate(-25deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0);      opacity: 1; }
+}
+
+/* thin progress bar at the top of the modal */
+.form-progress {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 0 22px;
+}
+.form-progress i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--navy) 0%, var(--blue) 55%, var(--orange) 100%);
+  border-radius: 2px;
+  transition: width .4s cubic-bezier(.22,.61,.36,1);
+}
+
+/* focus polish */
+.lead-form input[type="text"]:focus,
+.lead-form input[type="tel"]:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(30, 136, 229, .18);
+}
+.lead-form input[type="text"],
+.lead-form input[type="tel"] {
+  transition: border-color .18s ease, box-shadow .18s ease;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1.5px solid #d8dce3;
+}
+.lead-form .field.has-error input {
+  border-color: #d33;
+  animation: shake .32s;
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25%     { transform: translateX(-5px); }
+  75%     { transform: translateX(5px); }
+}
+
+/* ---------- Google Places custom autocomplete ---------- */
+.autocomplete-wrapper {
+  position: relative;
+}
+.ac-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .14);
+  max-height: 264px;
+  overflow-y: auto;
+  z-index: 30;
+  animation: acIn .18s ease;
+}
+@keyframes acIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ac-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.ac-item.active,
+.ac-item:hover {
+  background: #eef3ff;
+}
+.ac-item svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--blue);
+}
+.ac-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ac-name {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.ac-addr {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ac-spinner {
+  position: absolute;
+  right: 12px;
+  top: 14px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: acSpin .7s linear infinite;
+}
+@keyframes acSpin { to { transform: rotate(360deg); } }
+
+.autocomplete-wrapper.is-picked input {
+  border-color: #2e9e4f;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232e9e4f' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M5 13l4 4 10-10'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 15px;
+  padding-right: 36px;
+}
+
+/* ============================================================
+   Hover-preview video cards. The <video> is layered OVER the
+   poster <img> rather than replacing it, so the poster is still
+   there to fade back to when the cursor leaves, and re-entering
+   the card doesn't re-download the file. States are set by
+   wireVideoCards() in main.js:
+     .is-previewing — playing (hover or click)
+     .is-committed  — user clicked; keeps playing on mouse-out,
+                      native controls are live
+     .is-muted      — browser refused sound on this play attempt
+   ============================================================ */
+.video-card .hover-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .22s ease;
+  pointer-events: none;
+}
+.video-card.is-previewing .hover-video {
+  opacity: 1;
+}
+/* controls only need to receive clicks once the card is committed */
+.video-card.is-committed .hover-video {
+  pointer-events: auto;
+}
+
+.video-card img,
+.video-card .play-btn {
+  transition: opacity .22s ease;
+}
+.video-card.is-previewing img,
+.video-card.is-previewing .play-btn {
+  opacity: 0;
+}
+
+/* subtle lift so the card reads as interactive before you hover it */
+.video-card {
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .video-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .18);
+  }
+}
+
+/* shown only when the browser blocked sound on this play attempt —
+   i.e. the visitor hasn't clicked anything on the page yet */
+.video-card .sound-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, .72);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+  z-index: 3;
+  white-space: nowrap;
+}
+.video-card.is-muted .sound-hint {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lead-form .field,
+  .lead-form .field > .field-inner,
+  .form-progress i,
+  .ac-suggestions,
+  .video-card,
+  .video-card img,
+  .video-card .play-btn,
+  .video-card .hover-video { transition: none; animation: none; }
+  .video-card:hover { transform: none; }
+}
+
+/* springy pop when a conditional field appears */
+.lead-form .field.just-revealed > .field-inner {
+  animation: fieldPop .5s cubic-bezier(.34, 1.45, .64, 1);
+}
+@keyframes fieldPop {
+  0%   { transform: translateY(-10px) scale(.96); }
+  55%  { transform: translateY(3px) scale(1.015); }
+  100% { transform: translateY(0) scale(1); }
+}
+.lead-form .field.just-revealed .radio-option,
+.lead-form .field.just-revealed input {
+  animation: fieldFade .45s ease both .06s;
+}
+@keyframes fieldFade {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* short standalone pages (no-google-business, sorry) */
+.page-short {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 40px;
+}
+.page-short h1 {
+  margin-top: 8px;
+}
+.page-copy {
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text);
+  max-width: 36em;
+  margin: 0 auto;
+}
+.page-copy a {
+  color: var(--blue);
+  font-weight: 700;
+}
+.page-short footer {
+  margin-top: auto;
+  padding-top: 40px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lead-form .field.just-revealed > .field-inner,
+  .lead-form .field.just-revealed input,
+  .lead-form .field.just-revealed .radio-option { animation: none; }
+}
+/* ============================================================
+   Thank-you page: the 2-minute video heading and the
+   "More Testimonials" button beneath the testimonial grid.
+   Both are targeted by ID so the shared h2 / .btn rules used
+   everywhere else on the site are left alone.
+   ============================================================ */
+#stepBar {
+  font-size: 23px;
+  line-height: 1.32;
+  font-weight: 800;
+  margin: 30px 0 18px;
+}
+@media (min-width: 700px) {
+  #stepBar {
+    font-size: 28px;
+  }
+}
+
+/* Pill button, sized to its own text rather than the full column,
+   with breathing room above it. The ID beats the .btn width rules
+   (including the ones inside the 700px media query) on specificity,
+   so no !important is needed. */
+#moreTestimonials {
+  display: block;
+  width: fit-content;
+  min-width: 0;
+  margin: 44px auto 0;
+  padding: 15px 42px;
+  border-radius: 9999px;
+}
+
+/* ------------------------------------------------------------
+   Autocomplete dropdown stacking fix.
+
+   The reveal animation puts `transform: translateY(...)` on
+   .field-inner, and ANY non-none transform creates a stacking
+   context. That traps .ac-suggestions' z-index:30 inside the
+   business-name field, so it could never paint above the phone
+   and revenue fields that come after it in the DOM - no matter
+   how high that z-index went.
+
+   Raising the whole field instead puts the trapped context above
+   its later siblings, and the dropdown escapes with it.
+   ------------------------------------------------------------ */
+.lead-form .field {
+  position: relative;
+  z-index: 1;
+}
+
+/* Once a field has finished animating in, drop the transform entirely.
+   `transform: none` is not a stacking context, so nothing inside the field
+   is trapped any more. The hidden state keeps its translateY so the reveal
+   animation is unaffected - transitions between `none` and a translate
+   interpolate correctly. */
+.lead-form .field.is-open > .field-inner {
+  transform: none;
+}
+
+/* Belt and braces: even if a field somehow still forms a context, the
+   business-name field outranks every field below it explicitly. Relying on
+   `z-index: auto` for the later fields is what let this slip through the
+   first time. */
+.lead-form .field[data-step="businessName"] {
+  z-index: 60;
+}
+.lead-form .field[data-step="phone"],
+.lead-form .field[data-step="revenue"],
+.lead-form .field[data-step="submit"] {
+  z-index: 1;
+}
+
+/* And raise the list itself well clear of anything in the modal. */
+.ac-suggestions {
+  z-index: 100;
+}
+
+/* ============================================================
+   Windows homepage hero: free-scan card.
+   Everything here sits above the gold divider; the section below
+   it is unchanged.
+   ============================================================ */
+.hero-sub {
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-width: 36em;
+  margin: 0 auto 18px;
+}
+
+.scan-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .07);
+  padding: 24px 20px;
+  margin: 0 auto;
+  max-width: 460px;
+  /* The Places dropdown hangs out of this card, so it must not clip, and it
+     needs to sit above the star row and divider that follow it. */
+  overflow: visible;
+  position: relative;
+  z-index: 5;
+}
+.scan-title {
+  text-align: center;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.3;
+  margin: 0 0 18px;
+}
+.scan-card .btn {
+  width: 100%;
+  min-width: 0;
+  margin: 4px 0 0;
+  border-radius: 10px;
+}
+.scan-note {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 12px 0 14px;
+}
+
+.field-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+
+@media (min-width: 700px) {
+  .hero-sub { font-size: 17px; }
+  .scan-card { max-width: 500px; padding: 28px 26px; }
+}
+
+/* ============================================================
+   Legal pages (privacy policy, terms, etc.) - plain left-aligned
+   document layout, distinct from the marketing pages' centered style.
+   ============================================================ */
+.legal-page h1 {
+  text-align: left;
+  font-size: 24px;
+  letter-spacing: .02em;
+}
+.legal-page .legal-updated {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 0 0 28px;
+}
+.legal-page h2 {
+  text-align: left;
+  font-size: 17px;
+  margin: 30px 0 8px;
+}
+.legal-page p {
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+.legal-page p a {
+  color: var(--blue);
+}
+.legal-page p {
+  margin: 0 0 12px;
+}
+
+/* Empty testimonial lists and a missing explainer render these stand-in
+   cards instead of a blank section. The Placeholder chip marks them as
+   stand-ins, not client reviews and not a broken video file. */
+.testimonial-placeholders .video-card.is-placeholder,
+.explainer-video-wrap.is-placeholder .video-card.is-placeholder {
+  cursor: default;
+  background: #16304f;
+  border: 1px dashed rgba(30, 136, 229, 0.7);
+}
+.explainer-video-wrap.is-placeholder {
+  margin: 6px auto 22px;
+}
+.video-card.explainer-placeholder {
+  aspect-ratio: 16 / 9;
+  max-height: none;
+  margin-bottom: 0;
+}
+.testimonial-placeholders .placeholder-thumb,
+.explainer-video-wrap.is-placeholder .placeholder-thumb {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 10px 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(11, 31, 58, 0.35)),
+    repeating-linear-gradient(135deg, #1a3d66 0 14px, #12304f 14px 28px);
+}
+.testimonial-placeholders .placeholder-badge,
+.explainer-video-wrap.is-placeholder .placeholder-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(11, 31, 58, 0.88);
+  color: #fff;
+  border: 1px solid var(--orange);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.testimonial-placeholders .video-card.is-placeholder .play-btn,
+.explainer-video-wrap.is-placeholder .play-btn {
+  background: var(--orange);
+}
+.testimonial-placeholders .video-card.is-placeholder .play-btn svg,
+.explainer-video-wrap.is-placeholder .play-btn svg {
+  fill: #fff;
+}
+.testimonial-placeholders .placeholder-thumb-label,
+.explainer-video-wrap.is-placeholder .placeholder-thumb-label {
+  margin: 46px 0 0;
+  color: #f4f6f9;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+.testimonial-placeholders .testimonial-quote {
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+.testimonial-placeholders .testimonial-attribution {
+  color: #6b7c90;
+  font-size: 14px;
+  font-weight: 600;
+}
+@media (min-width: 640px) and (max-width: 899px) {
+  .testimonial-placeholders {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+    align-items: start;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .video-card.is-placeholder:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.reach-note {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--navy);
+}

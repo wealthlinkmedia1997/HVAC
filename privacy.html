@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
+<title>Privacy Policy | HVAC Marketing Center</title>
+<meta name="description" content="Privacy policy for HVAC Marketing Center, a WealthLink Media company.">
+<link rel="stylesheet" href="css/style.css?v=1">
+<script src="js/config.js?v=1"></script>
+</head>
+<body>
+<div class="wrap legal-page">
+  <p><a href="index.html">← HVAC Marketing Center</a></p>
+  <h1>PRIVACY POLICY</h1>
+  <p class="legal-updated">Last updated: October 13, 2026</p>
+
+  <p>HVAC Marketing Center ("we", "us", or "our"), a WealthLink Media company, respects your privacy. This policy explains how we
+    collect, use, and protect your information when you submit a form on our website.</p>
+
+  <h2>Information We Collect</h2>
+  <p>When you submit a form, we collect your full name, business name, and mobile phone number, along with any details you choose to provide about your HVAC company and service area.</p>
+
+  <h2>How We Use Your Information</h2>
+  <p>We use your information to check whether your service area is available, contact you about a strategy call, and determine whether our Google Maps, local SEO, and AI search services are a good fit for your HVAC company. We do not sell, rent, or share your personal information with third parties.</p>
+
+  <h2>Data Storage</h2>
+  <p>Your information is stored securely and is accessible only to authorized members of our team who need it to contact you and deliver our services.</p>
+
+  <h2>Text and Call Consent</h2>
+  <p>By submitting your mobile phone number, you consent to be contacted by phone or text message at the number you provided. Standard message rates may apply. You can opt out at any time by replying STOP to any text message.</p>
+
+  <h2>Third-Party Platforms</h2>
+  <p>If a form is routed through a third-party tool, that platform may collect its own data subject to its own privacy policy. No pixel, analytics ID, or webhook is active on this site until one is configured.</p>
+
+  <h2>Your Rights</h2>
+  <p>You can request access to, correction of, or deletion of your personal information at any time by contacting HVAC Marketing Center through the form on this website.</p>
+
+  <h2>Contact</h2>
+  <p id="privacyContact">HVAC Marketing Center<br>a WealthLink Media company</p>
+
+  <footer>© 2026 HVAC Marketing Center, a WealthLink Media company | All Rights Reserved · <a href="privacy.html">Privacy Policy</a></footer>
+</div>
+<script src="js/main.js?v=1"></script>
+<script>
+  // Email and phone are omitted unless both values are actually configured.
+  (function () {
+    var cfg = window.RANKFLOW_CONFIG || {};
+    var email = String(cfg.PRIVACY_EMAIL || "").trim();
+    var phone = String(cfg.PRIVACY_PHONE || "").trim();
+    var el = document.getElementById("privacyContact");
+    if (email && !/^REPLACE/i.test(email)) {
+      var emailLine = document.createElement("span");
+      emailLine.innerHTML = "<br>Email: ";
+      var a = document.createElement("a");
+      a.href = "mailto:" + email;
+      a.textContent = email;
+      el.appendChild(emailLine);
+      el.appendChild(a);
+    }
+    if (phone && !/^REPLACE/i.test(phone)) {
+      var phoneLine = document.createElement("span");
+      phoneLine.innerHTML = "<br>Phone: ";
+      var p = document.createElement("a");
+      p.href = "tel:" + phone.replace(/[^\d+]/g, "");
+      p.textContent = phone;
+      el.appendChild(phoneLine);
+      el.appendChild(p);
+    }
+  })();
+</script>
+</body></html>

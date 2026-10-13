@@ -1,0 +1,1034 @@
+// ============================================================
+// Shared logic used across all pages: testimonial rendering,
+// video facades, lead form handling + routing, GHL calendar
+// lazy-load, Google Places autocomplete.
+// ============================================================
+
+// ---------- Icons (inline SVG, no external icon library) ----------
+const ICON_SHIELD = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3Z" fill="#1E88E5"/>
+  <path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+const ICON_PIN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>`;
+const ICON_PLAY = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7-11-7Z"/></svg>`;
+const ICON_CLOCK = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
+const ICON_CALENDAR = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>`;
+const ICON_GLOBE = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18"/></svg>`;
+
+function renderLogo(el) {
+  el.innerHTML = `<a href="index.html"><img src="assets/logo-transparent.png" alt="HVAC Marketing Center" class="logo-img"></a>`;
+}
+
+// ---------- Video testimonial cards ----------
+function videoCardHTML(t) {
+  return `
+    <div class="testimonial-item">
+      <div class="video-card" data-video-src="${t.videoSrc || ""}" data-poster="${t.poster || ""}">
+        ${t.poster ? `<img src="${t.poster}" alt="${t.name} testimonial" loading="lazy">` : ""}
+        <div class="play-btn">${ICON_PLAY}</div>
+        <div class="sound-hint">Click for sound</div>
+        ${!t.videoSrc ? `<div class="video-placeholder-label">Video not configured — see testimonials-data.js</div>` : ""}
+      </div>
+      <p class="testimonial-quote">"${t.quote}"</p>
+      <p class="testimonial-attribution">${t.name} with ${t.company}</p>
+    </div>
+  `;
+}
+
+// Shown when a page asks for testimonials but none of them have a real
+// video. These are labeled stand-ins, not client stories and not files.
+const PLACEHOLDER_REVIEW_COUNT = 6;
+
+function placeholderReviewCardHTML() {
+  return `
+    <div class="testimonial-item is-placeholder">
+      <div class="video-card is-placeholder" role="img" aria-label="Placeholder video testimonial">
+        <div class="placeholder-thumb">
+          <span class="placeholder-badge">Placeholder</span>
+          <div class="play-btn" aria-hidden="true">${ICON_PLAY}</div>
+          <p class="placeholder-thumb-label">Video testimonial</p>
+        </div>
+      </div>
+      <p class="testimonial-quote">Client review</p>
+      <p class="testimonial-attribution">Client Name — Company</p>
+    </div>
+  `;
+}
+
+function realTestimonialsFor(ids) {
+  const list = Array.isArray(window.TESTIMONIALS) ? window.TESTIMONIALS : [];
+  const passed = Array.isArray(ids) ? ids : [];
+  return passed
+    .map((id) => list.find((t) => t && t.id === id))
+    .filter((t) => t && String(t.videoSrc || "").trim());
+}
+
+function renderTestimonials(containerId, ids) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const items = realTestimonialsFor(ids);
+  el.classList.add("testimonial-grid");
+  if (!items.length) {
+    const cards = [];
+    for (let i = 0; i < PLACEHOLDER_REVIEW_COUNT; i++) cards.push(placeholderReviewCardHTML());
+    el.innerHTML = cards.join("");
+    el.classList.add("testimonial-placeholders");
+    return;
+  }
+  el.classList.remove("testimonial-placeholders");
+  el.innerHTML = items.map(videoCardHTML).join("");
+  wireVideoCards(el);
+}
+
+function renderClosingTestimonial(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el || !window.CLOSING_TESTIMONIAL) return;
+  const c = window.CLOSING_TESTIMONIAL;
+  el.innerHTML = `
+    <p class="testimonial-quote">"${c.quote}"</p>
+    <p class="testimonial-attribution">${c.name} with ${c.company}</p>
+  `;
+}
+
+// ---------- Video playback: hover to preview, click to commit ----------
+// Autoplay policy: Chrome/Safari refuse play() with sound until the visitor
+// has produced a qualifying gesture on the page - and hovering is NOT one.
+// So the first hover on a cold page load can only be muted. We flip this flag
+// on the first real pointerdown anywhere, after which unmuted hover playback
+// is allowed and works. Before that we attempt sound anyway (a returning
+// visitor with a high Media Engagement Index is allowed it outright) and fall
+// back to muted + a "tap for sound" badge if the promise rejects.
+let audioUnlocked = false;
+document.addEventListener("pointerdown", () => { audioUnlocked = true; }, { capture: true, once: true });
+
+function canHoverPlay() {
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
+// The <video> is built once per card on first use and then kept, layered over
+// the poster <img> rather than replacing it - so leaving and re-entering the
+// card doesn't re-download the file, and the poster is still there to fade
+// back to.
+function buildCardVideo(card) {
+  if (card._video) return card._video;
+  const src = card.dataset.videoSrc;
+  if (!src) return null;
+  const v = document.createElement("video");
+  v.src = src;
+  v.className = "hover-video";
+  v.playsInline = true;
+  v.preload = "metadata";
+  v.addEventListener("ended", () => releaseCard(card));
+  // Keeps the "Click for sound" badge honest against the video's real muted
+  // state - not just the state our own playCard()/unmuteCard() last set it
+  // to. Desktop shows native controls with their own volume/mute icon (the
+  // click target the badge is standing in for anyway), and toggling that
+  // natively bypasses our code entirely; without this the badge could keep
+  // showing after a native unmute, or never reappear after a native re-mute.
+  v.addEventListener("volumechange", () => {
+    card.classList.toggle("is-muted", v.muted);
+  });
+  card.appendChild(v);
+  card._video = v;
+  return v;
+}
+
+// Stop a preview and fade the poster back in. A card the user actually
+// clicked ("committed") is left alone - that one keeps playing.
+function releaseCard(card) {
+  const v = card._video;
+  if (!v) return;
+  v.pause();
+  try { v.currentTime = 0; } catch (e) {}
+  v.controls = false;
+  card.classList.remove("is-previewing", "is-committed", "is-muted");
+}
+
+function stopOtherVideos(except) {
+  document.querySelectorAll(".video-card.is-previewing").forEach((c) => {
+    if (c !== except) releaseCard(c);
+  });
+}
+
+function playCard(card, committed) {
+  const v = buildCardVideo(card);
+  if (!v) {
+    console.warn("[RankFlow] No video source set for this testimonial yet.");
+    return;
+  }
+  stopOtherVideos(card);           // only ever one playing at a time
+  card.classList.add("is-previewing");
+  card.classList.toggle("is-committed", !!committed);
+  v.controls = !!committed;
+  v.muted = false;
+  v.volume = 1;
+  card.classList.remove("is-muted");
+
+  const p = v.play();
+  if (p && p.catch) {
+    p.catch(() => {
+      // Blocked for sound - retry muted so the visitor still sees something.
+      v.muted = true;
+      card.classList.add("is-muted");
+      v.play().catch(() => {});
+    });
+  }
+}
+
+// Turns the sound on for a card that's already committed and playing muted
+// (the autoplay-on-load fallback). Doesn't restart playback or fight a
+// pause the visitor just triggered via the native controls - v.paused
+// already reflects that by the time this runs, since native control clicks
+// resolve before the click event bubbles out to us.
+function unmuteCard(card) {
+  const v = card._video;
+  if (!v) return;
+  const wasPaused = v.paused;
+  v.muted = false;
+  v.volume = 1;
+  card.classList.remove("is-muted");
+  if (!wasPaused) {
+    const p = v.play();
+    if (p && p.catch) p.catch(() => {});
+  }
+}
+
+function wireVideoCards(scopeEl, opts) {
+  const hoverEnabled = !opts || opts.hoverPreview !== false;
+  (scopeEl || document).querySelectorAll(".video-card").forEach((card) => {
+    if (card.dataset.wiredVideo) return;
+    card.dataset.wiredVideo = "1";
+
+    if (hoverEnabled) {
+      // Small delay so dragging the cursor across the row doesn't fire off
+      // three downloads and three bursts of audio.
+      card.addEventListener("mouseenter", () => {
+        if (!canHoverPlay()) return;
+        if (card.classList.contains("is-committed")) return;
+        clearTimeout(card._hoverT);
+        card._hoverT = setTimeout(() => playCard(card, false), 140);
+      });
+      card.addEventListener("mouseleave", () => {
+        clearTimeout(card._hoverT);
+        if (card.classList.contains("is-committed")) return;
+        releaseCard(card);
+      });
+    }
+
+    card.addEventListener("click", function () {
+      // A click always wins over a pending hover-preview: without this, a
+      // click landing within the 140ms hover delay above could be silently
+      // undone moments later when that timer's own (uncommitted) playCard()
+      // call finally fires and clobbers the is-committed state a click just
+      // set.
+      clearTimeout(card._hoverT);
+
+      // Once committed, the native controls live inside this same element and
+      // their clicks bubble up here. Bailing out is what keeps pause, seek and
+      // fullscreen from being hijacked and restarting the video - except when
+      // it's still muted (e.g. left over from an autoplay-on-load fallback),
+      // where a click means "turn the sound on", not "restart playback".
+      if (card.classList.contains("is-committed")) {
+        if (card.classList.contains("is-muted")) unmuteCard(card);
+        return;
+      }
+      playCard(card, true);
+    });
+  });
+}
+
+function explainerPlaceholderHTML() {
+  return `
+    <div class="explainer-video-wrap is-placeholder">
+      <div class="video-card is-placeholder explainer-placeholder" role="img" aria-label="Placeholder 2-minute explainer video">
+        <div class="placeholder-thumb">
+          <span class="placeholder-badge">Placeholder</span>
+          <div class="play-btn" aria-hidden="true">${ICON_PLAY}</div>
+          <p class="placeholder-thumb-label">2-min explainer</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderExplainerVideo(containerId, stepBarId, opts) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const v = window.EXPLAINER_VIDEO || {};
+  const stepBar = stepBarId ? document.getElementById(stepBarId) : null;
+  if (stepBar) stepBar.style.display = "";
+  if (!String(v.videoSrc || "").trim()) {
+    // No file yet. Keep the section on screen as a labeled stand-in
+    // instead of hiding the heading and leaving an empty box.
+    el.innerHTML = explainerPlaceholderHTML();
+    return;
+  }
+  el.innerHTML = `
+    <div class="explainer-video-wrap">
+      <div class="video-card" data-video-src="${v.videoSrc}" data-poster="${v.poster || ""}" style="aspect-ratio:16/9;max-height:none;">
+        ${v.poster ? `<img src="${v.poster}" alt="Explainer video" fetchpriority="high">` : ""}
+        <div class="play-btn">${ICON_PLAY}</div>
+        <div class="sound-hint">Click for sound</div>
+      </div>
+      <div class="explainer-caption">${v.caption || ""}</div>
+    </div>
+  `;
+  // Same hover-to-preview behaviour as the testimonial cards: plays on hover
+  // with sound, pauses and rewinds on mouse-out, click commits it with
+  // controls. On touch devices it stays tap-to-play.
+  wireVideoCards(el);
+
+  if (opts && opts.autoplay) {
+    // Starts playing on its own, no hover/click needed - but not starting
+    // the moment renderExplainerVideo() runs. This card sits near the top
+    // of the page, and beginning a multi-MB video download immediately
+    // competes with the page's own critical-path resources (CSS, above-
+    // the-fold images) for bandwidth right when Lighthouse/PageSpeed's
+    // FCP/LCP/TBT metrics are measured, tanking mobile Performance scores
+    // for a visual difference of well under a second. Deferring the actual
+    // .play() call to after window "load" (with an idle-callback nudge, so
+    // it isn't starved indefinitely) keeps the poster image doing the job
+    // of looking like a finished page while the rest of the load completes
+    // first - same pattern loadGhlCalendar() already uses below.
+    //
+    // playCard() itself already does the right thing once called: it tries
+    // unmuted first (works for a returning visitor with a high Media
+    // Engagement Index), and every browser's autoplay policy blocks a
+    // fresh page load from making sound with zero user interaction, so it
+    // falls back to a muted autoplay with the existing "Click for sound"
+    // badge, which no site can get around - there's no trick that forces
+    // real sound before a click.
+    const card = el.querySelector(".video-card");
+    if (card) {
+      const start = () => playCard(card, true);
+      const schedule = () => {
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(start, { timeout: 1500 });
+        } else {
+          setTimeout(start, 200);
+        }
+      };
+      if (document.readyState === "complete") {
+        schedule();
+      } else {
+        window.addEventListener("load", schedule);
+        setTimeout(schedule, 3000);
+      }
+    }
+  }
+}
+
+// ---------- Lead routing ----------
+// Two disqualifiers, then revenue alone picks the calendar:
+//
+//   GBP = No        -> no-google-business.html  (any revenue)
+//   Revenue $0-10k  -> sorry.html               (Yes or Unverified)
+//   Revenue $10-25k -> book-untracked.html   SECONDARY (sCFZ3xO5KSrolIiIe0FY)
+//   Revenue $25k+   -> book-tracked.html     MAIN      (RLJBIDoVL2gvxpqqI7lu)
+//
+// Note the change: once a lead is past the two disqualifiers, GBP status no
+// longer affects which calendar they get. Unverified/suspended at $25k+ now
+// lands on the MAIN calendar, where it previously got the secondary one.
+function routeUser(gbp, revenue) {
+  if (gbp === "no") return "no-google-business.html";
+  if (revenue === "r0_10") return "sorry.html";
+  if (revenue === "r25_100" || revenue === "r100plus") {
+    return "book-tracked.html";
+  }
+  return "book-untracked.html";
+}
+
+function getLeadFirstName() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("fn")) return params.get("fn");
+  try {
+    const stored = JSON.parse(sessionStorage.getItem("rankflow_lead") || "{}");
+    return stored.firstName || "";
+  } catch (e) {
+    return "";
+  }
+}
+
+function getLeadBusinessName() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("biz")) return params.get("biz");
+  try {
+    const stored = JSON.parse(sessionStorage.getItem("rankflow_lead") || "{}");
+    return stored.businessName || "";
+  } catch (e) {
+    return "";
+  }
+}
+
+// Which steps are on screen. No page currently asks the Google Business
+// Page question, so business name (like every other field) is just always
+// visible whenever it's present in the form.
+function visibleSteps() {
+  return ["firstName", "gbp", "businessName", "phone", "revenue", "submit"];
+}
+
+function digitsOnly(v) {
+  return String(v || "").replace(/\D/g, "");
+}
+
+function wireProgressiveForm(formEl) {
+  if (!formEl) return;
+  const steps = {};
+  formEl.querySelectorAll("[data-step]").forEach((f) => { steps[f.dataset.step] = f; });
+  const bar = formEl.querySelector(".form-progress i");
+
+  function gbpValue() {
+    const c = formEl.querySelector('[name="gbp"]:checked');
+    return c ? c.value : "";
+  }
+
+  function isComplete(name) {
+    switch (name) {
+      case "firstName":    return formEl.firstName.value.trim().length >= 2;
+      case "gbp":          return !!gbpValue();
+      case "businessName": return formEl.businessName.value.trim().length >= 3;
+      case "phone":        return digitsOnly(formEl.phone.value).length >= 10;
+      case "revenue":      return !!formEl.querySelector('[name="revenue"]:checked');
+      default:             return true;
+    }
+  }
+
+  function setVisible(field, show) {
+    const wasHidden = field.classList.contains("is-hidden");
+    if (show) {
+      field.classList.remove("is-hidden");
+      clearTimeout(field._openT);
+      // Overflow stays clipped while the height animates, otherwise the
+      // expanding box can't be transitioned cleanly. Once it's done we let
+      // overflow go visible again so the Places dropdown isn't cut off by
+      // its own parent.
+      field._openT = setTimeout(() => field.classList.add("is-open"), 400);
+       if (wasHidden) {
+        field.classList.remove("just-revealed");
+        void field.offsetWidth;              // forces the animation to restart
+        field.classList.add("just-revealed");
+        setTimeout(() => field.scrollIntoView({ behavior: "smooth", block: "nearest" }), 280);
+      }
+    } else {
+      clearTimeout(field._openT);
+      field.classList.add("is-hidden");
+      field.classList.remove("is-open");
+    }
+  }
+
+  function clearField(field) {
+    field.querySelectorAll("input").forEach((i) => {
+      if (i.type === "radio" || i.type === "checkbox") i.checked = false;
+      else i.value = "";
+    });
+    field.classList.remove("is-done", "has-error");
+    const w = field.querySelector(".autocomplete-wrapper");
+    if (w) w.classList.remove("is-picked");
+  }
+
+  function update() {
+    const path = visibleSteps();
+
+    Object.keys(steps).forEach((name) => {
+      const f = steps[name];
+      const shouldShow = path.indexOf(name) !== -1;
+      const wasShowing = !f.classList.contains("is-hidden");
+
+      setVisible(f, shouldShow);
+
+      // Wipe a field on its way out so a stale value never reaches
+      // sessionStorage or the webhook — e.g. a business name typed under
+      // "Yes" before switching to "No".
+      if (!shouldShow && wasShowing) clearField(f);
+
+      if (shouldShow) {
+        const done = isComplete(name);
+        f.classList.toggle("is-done", done && name !== "submit");
+        if (done) f.classList.remove("has-error");
+      }
+    });
+
+    if (bar) {
+      const req = path.filter((n) => n !== "submit");
+      const filled = req.filter(isComplete).length;
+      bar.style.width = Math.round((filled / req.length) * 100) + "%";
+    }
+  }
+
+
+  // Live phone formatting -> (555) 123-4567
+  if (formEl.phone) {
+    formEl.phone.addEventListener("input", function () {
+      const d = digitsOnly(this.value).slice(0, 10);
+      this.value = d.length > 6 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+                 : d.length > 3 ? `(${d.slice(0, 3)}) ${d.slice(3)}`
+                 : d.length > 0 ? `(${d}`
+                 : "";
+    });
+  }
+
+  formEl.addEventListener("input", update);
+  formEl.addEventListener("change", update);
+  update();
+}
+
+// ---------- Human-readable labels for the webhook payload ----------
+// The radio values are internal codes (r25_100, unverified) because routing
+// switches on them. Anything leaving the browser for GHL/Slack gets the
+// readable version instead - "r25_100" in a Slack alert is unreadable.
+const REVENUE_LABELS = {
+  r0_10: "$0 - $10,000",
+  r10_25: "$10,000 - $25,000",
+  r25_100: "$25,000 - $100,000",
+  r100plus: "$100,000+",
+};
+const GBP_LABELS = {
+  yes: "Yes",
+  no: "No",
+  unverified: "Yes - but unverified/suspended",
+};
+
+// ---------- Lead form: validation, storage, routing ----------
+// The form carries `novalidate` and the inputs have no `required` attribute:
+// a hidden field that is still `required` makes Chrome refuse to submit with
+// "An invalid form control is not focusable", so validation happens here
+// instead, against whichever path the user is actually on.
+function wireLeadForm(formEl) {
+  if (!formEl) return;
+  formEl.addEventListener("submit", function (e) {
+    e.preventDefault();
+    // This homepage asks no GBP question at all and collects the
+    // business name in the hero card instead of the modal. Both are resolved
+    // defensively so the same function serves either layout.
+    const hasGbpField = !!formEl.querySelector('[name="gbp"]');
+    const gbp = hasGbpField
+      ? (formEl.querySelector('[name="gbp"]:checked') || {}).value
+      : "";
+    const bizEl = formEl.querySelector('[name="businessName"]') ||
+                  document.querySelector('[name="businessName"]');
+    const pidEl = formEl.querySelector('[name="placeId"]') ||
+                  document.querySelector('[name="placeId"]');
+    const padEl = formEl.querySelector('[name="placeAddress"]') ||
+                  document.querySelector('[name="placeAddress"]');
+    const needsBusiness = hasGbpField
+      ? (gbp === "yes" || gbp === "unverified")
+      : !!bizEl;
+
+    // This homepage also drops the revenue question entirely - only
+    // pages that still ask it should require or route on an answer.
+    const hasRevenueField = !!formEl.querySelector('[name="revenue"]');
+    const revenueCode = hasRevenueField
+      ? (formEl.querySelector('[name="revenue"]:checked') || {}).value
+      : "";
+
+    const data = {
+      firstName: formEl.firstName.value.trim(),
+      phone: formEl.phone.value.trim(),
+      // Readable text is what GHL and Slack display.
+      gbp: hasGbpField ? (GBP_LABELS[gbp] || gbp) : "",
+      revenue: hasRevenueField ? (REVENUE_LABELS[revenueCode] || revenueCode) : "",
+      // Raw codes kept alongside, for workflow conditions that need to match
+      // on an exact value rather than display text.
+      gbpCode: gbp,
+      revenueCode: revenueCode,
+      businessName: needsBusiness && bizEl ? bizEl.value.trim() : "",
+      businessPlaceId: needsBusiness && pidEl ? pidEl.value : "",
+      businessAddress: needsBusiness && padEl ? padEl.value : "",
+    };
+
+    const missing = [];
+    if (data.firstName.length < 2) missing.push("firstName");
+    if (hasGbpField && !gbp) missing.push("gbp");
+    if (needsBusiness && data.businessName.length < 3) missing.push("businessName");
+    if (digitsOnly(data.phone).length < 10) missing.push("phone");
+    if (hasRevenueField && !revenueCode) missing.push("revenue");
+    if (missing.length) {
+      const f = formEl.querySelector('[data-step="' + missing[0] + '"]');
+      if (f) {
+        f.classList.add("has-error");
+        f.scrollIntoView({ behavior: "smooth", block: "center" });
+        const inp = f.querySelector("input");
+        if (inp) inp.focus();
+      }
+      return;
+    }
+
+    sessionStorage.setItem("rankflow_lead", JSON.stringify(data));
+    if (window.RANKFLOW_CONFIG.LEAD_WEBHOOK_URL) {
+      fetch(window.RANKFLOW_CONFIG.LEAD_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        keepalive: true,
+      }).catch(() => {});
+    }
+    // This homepage asks no revenue question, so there is nothing for
+    // routeUser()'s revenue tiers to branch on - every lead here goes
+    // straight to the thank-you page. The Step 1 video + Step 2 calendar are
+    // already built into this same homepage above, so there's no separate
+    // booking page left to route to.
+    const fn = "fn=" + encodeURIComponent(data.firstName);
+    const dest = hasRevenueField
+      ? routeUser(gbp, revenueCode) + "?" + fn
+      : "thank-you.html?" + fn + "&biz=" + encodeURIComponent(data.businessName);
+    window.location.href = dest;
+  });
+}
+
+// ---------- Google Places: custom-rendered autocomplete ----------
+// Google's stock Autocomplete widget injects its own unstyleable .pac-container
+// dropdown, so instead we call the suggestions service directly and render our
+// own list. Tries the new AutocompleteSuggestion API first and falls back to
+// the legacy AutocompleteService if the key/project only has the old one.
+let placesLoading = null;
+function loadGooglePlaces() {
+  if (placesLoading) return placesLoading;
+  placesLoading = new Promise((resolve) => {
+    const key = window.RANKFLOW_CONFIG.GOOGLE_PLACES_API_KEY;
+    if (!key || key.startsWith("REPLACE")) {
+      console.warn("[RankFlow] GOOGLE_PLACES_API_KEY not configured — business autocomplete disabled (field still works as plain text).");
+      resolve(false);
+      return;
+    }
+    if (window.google && window.google.maps && window.google.maps.places) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://maps.googleapis.com/maps/api/js?key=" +
+      encodeURIComponent(key) + "&libraries=places&loading=async&v=weekly";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+  return placesLoading;
+}
+
+function fetchPlaceSuggestions(query) {
+  const places = window.google && window.google.maps && window.google.maps.places;
+  if (!places) return Promise.resolve([]);
+
+  // Places API (New)
+  if (places.AutocompleteSuggestion) {
+    return places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input: query,
+      includedPrimaryTypes: ["establishment"],
+      includedRegionCodes: ["us"],
+    }).then((res) => (res.suggestions || []).map((s) => {
+      const p = s.placePrediction;
+      return {
+        id: p.placeId,
+        name: p.mainText ? p.mainText.text : p.text.text,
+        address: p.secondaryText ? p.secondaryText.text : "",
+      };
+    })).catch((err) => {
+      console.warn("[RankFlow] Places lookup failed:", err);
+      return [];
+    });
+  }
+
+  // Legacy fallback
+  return new Promise((resolve) => {
+    new places.AutocompleteService().getPlacePredictions(
+      { input: query, types: ["establishment"], componentRestrictions: { country: "us" } },
+      (preds, status) => {
+        if (status !== places.PlacesServiceStatus.OK || !preds) return resolve([]);
+        resolve(preds.map((p) => ({
+          id: p.place_id,
+          name: p.structured_formatting ? p.structured_formatting.main_text : p.description,
+          address: p.structured_formatting ? (p.structured_formatting.secondary_text || "") : "",
+        })));
+      }
+    );
+  });
+}
+
+function escHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+function wireBusinessAutocomplete(inputEl) {
+  const wrap = inputEl.closest(".autocomplete-wrapper");
+  if (!wrap) return;
+  const list = wrap.querySelector(".ac-suggestions");
+  const spinner = wrap.querySelector(".ac-spinner");
+  // The hero scan card puts this input outside any <form>, so fall back to
+  // the nearest wrapper and then the document. inputEl.form is null there and
+  // would throw.
+  const scope = inputEl.form || inputEl.closest(".scan-card") || document;
+  const placeIdEl = scope.querySelector('[name="placeId"]');
+  const placeAddrEl = scope.querySelector('[name="placeAddress"]');
+
+  let items = [], active = -1, timer = null, seq = 0, apiReady = false, suppress = false;
+  // Set when the user picks a suggestion. While it's on, typing does not
+  // trigger another lookup - the choice is final until they click back into
+  // the field. Without this, editing a picked name re-opens the list over
+  // and over.
+  let locked = false;
+
+  loadGooglePlaces().then((ok) => { apiReady = ok; });
+
+  function close() {
+    list.hidden = true;
+    list.innerHTML = "";
+    items = [];
+    active = -1;
+    inputEl.setAttribute("aria-expanded", "false");
+  }
+
+  function render() {
+    if (!items.length) return close();
+    list.innerHTML = items.map((it, i) =>
+      `<li class="ac-item${i === active ? " active" : ""}" role="option" data-i="${i}">
+         ${ICON_PIN}
+         <span class="ac-text">
+           <span class="ac-name">${escHtml(it.name)}</span>
+           <span class="ac-addr">${escHtml(it.address)}</span>
+         </span>
+       </li>`).join("");
+    list.hidden = false;
+    inputEl.setAttribute("aria-expanded", "true");
+  }
+
+  function choose(i) {
+    const it = items[i];
+    if (!it) return;
+    suppress = true;
+    inputEl.value = it.name;
+    if (placeIdEl) placeIdEl.value = it.id || "";
+    if (placeAddrEl) placeAddrEl.value = it.address || "";
+    wrap.classList.add("is-picked");
+    locked = true;
+    close();
+    // suppress stays ON across this dispatch. The event still bubbles to the
+    // form-level listener that updates the progress bar and tick, but the
+    // input's own handler below bails out - otherwise it reads this synthetic
+    // event as fresh typing, wipes the place ID and re-runs the search, which
+    // is what made the list reappear immediately after every pick.
+    inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+    suppress = false;
+    // Drop focus so the next click back into the field fires `focus` and
+    // unlocks it for editing.
+    inputEl.blur();
+  }
+
+  inputEl.addEventListener("input", function () {
+    if (suppress || locked) return;
+    // Typing after a pick invalidates that pick.
+    wrap.classList.remove("is-picked");
+    if (placeIdEl) placeIdEl.value = "";
+    if (placeAddrEl) placeAddrEl.value = "";
+
+    const q = inputEl.value.trim();
+    clearTimeout(timer);
+    if (!apiReady || q.length < 3) { close(); spinner.hidden = true; return; }
+
+    spinner.hidden = false;
+    timer = setTimeout(() => {
+      const my = ++seq;
+      fetchPlaceSuggestions(q).then((res) => {
+        if (my !== seq) return;          // a newer keystroke already won
+        spinner.hidden = true;
+        items = res.slice(0, 6);
+        active = -1;
+        render();
+      });
+    }, 220);
+  });
+
+  inputEl.addEventListener("keydown", (e) => {
+    if (list.hidden) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); active = (active + 1) % items.length; render(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); active = (active - 1 + items.length) % items.length; render(); }
+    else if (e.key === "Enter" && active > -1) { e.preventDefault(); choose(active); }
+    else if (e.key === "Escape") { close(); }
+  });
+
+  // mousedown, not click - blur would tear the list down before click lands
+  list.addEventListener("mousedown", (e) => {
+    const li = e.target.closest(".ac-item");
+    if (!li) return;
+    e.preventDefault();
+    choose(Number(li.dataset.i));
+  });
+
+  // Clicking (or tabbing) back into the field releases the lock so the user
+  // can search again. `focus` alone isn't enough - after a pick the caret can
+  // still be in the field, in which case only `click` fires.
+  function unlock() {
+    locked = false;
+  }
+  inputEl.addEventListener("focus", unlock);
+  inputEl.addEventListener("click", unlock);
+
+  inputEl.addEventListener("blur", () => setTimeout(close, 120));
+}
+
+// ---------- GHL calendar, lazy-loaded after page is idle ----------
+// GHL's own embed snippet is: an iframe (id = the widget ID from the booking
+// URL) + a single <script src=".../form_embed.js"> that listens for
+// postMessage from the iframe to auto-resize it (GHL calendars are variable
+// height depending on the booking step). We inject both, lazily.
+let ghlEmbedScriptLoaded = false;
+let ghlEmbedCounter = 0;
+function ensureGhlEmbedScript() {
+  if (ghlEmbedScriptLoaded) return;
+  ghlEmbedScriptLoaded = true;
+  const s = document.createElement("script");
+  s.src = "https://link.msgsndr.com/js/form_embed.js";
+  document.body.appendChild(s);
+}
+
+// Pulls the answers the lead already gave us on the landing page so the GHL
+// booking widget arrives pre-filled instead of asking for the same details a
+// second time. Reads sessionStorage first, falls back to the ?fn= on the URL.
+// GHL accepts first_name / phone / company_name as query params on the embed.
+function ghlPrefillParams() {
+  let lead = {};
+  try {
+    lead = JSON.parse(sessionStorage.getItem("rankflow_lead") || "{}");
+  } catch (e) {
+    lead = {};
+  }
+  const qs = new URLSearchParams(window.location.search);
+  const fields = {
+    first_name: qs.get("fn") || lead.firstName || "",
+    phone: lead.phone || "",
+    company_name: lead.businessName || "",
+  };
+  return Object.keys(fields)
+    .filter((k) => fields[k])
+    .map((k) => k + "=" + encodeURIComponent(fields[k]))
+    .join("&");
+}
+
+function loadGhlCalendar(containerId, url) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!url || url.startsWith("REPLACE")) {
+    container.innerHTML = '<p class="calendar-loading">Calendar not configured yet</p>';
+    return;
+  }
+  const widgetId = url.split("/").filter(Boolean).pop();
+  const run = () => {
+    const prefill = ghlPrefillParams();
+    const iframe = document.createElement("iframe");
+    iframe.src = url + (prefill ? (url.indexOf("?") === -1 ? "?" : "&") + prefill : "");
+
+    // GHL's own generated snippet uses `widgetId_<unique suffix>`, e.g.
+    // sCFZ3xO5KSrolIiIe0FY_1787884958998. form_embed.js matches on that
+    // prefix, so each embed needs its OWN id. Two iframes sharing a single
+    // id means only one can ever be resized - the other stays collapsed,
+    // which reads as blank space where a calendar should be.
+    ghlEmbedCounter += 1;
+    iframe.id = widgetId + "_" + (Date.now() + ghlEmbedCounter);
+
+    iframe.setAttribute("allow", "payment");
+    iframe.setAttribute("scrolling", "no");
+    iframe.style.width = "100%";
+    iframe.style.minHeight = "750px";
+    iframe.style.border = "none";
+    iframe.style.overflow = "hidden";
+    // NOT loading="lazy": the second calendar sits far below the fold, and a
+    // lazy iframe there can stay unloaded until it is scrolled right up to,
+    // leaving an empty box in the meantime.
+    container.innerHTML = "";
+    container.appendChild(iframe);
+    ensureGhlEmbedScript();
+
+    // If nothing has rendered after 8s (blocked third-party frame, bad URL,
+    // ad blocker), give the visitor a direct link rather than blank space.
+    setTimeout(() => {
+      if (iframe.clientHeight > 120) return;
+      const p = document.createElement("p");
+      p.className = "calendar-loading";
+      p.innerHTML = 'Calendar slow to load? <a href="' + iframe.src +
+        '" target="_blank" rel="noopener"><strong>Open it in a new tab</strong></a>.';
+      container.appendChild(p);
+    }, 8000);
+  };
+
+  // requestIdleCallback with no timeout can be starved indefinitely on a page
+  // still decoding video posters, leaving the calendar on "Loading..." for
+  // good. The timeout forces it through.
+  const schedule = () => {
+    if (container.dataset.ghlStarted) return;
+    container.dataset.ghlStarted = "1";
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(run, { timeout: 1500 });
+    } else {
+      setTimeout(run, 200);
+    }
+  };
+  if (document.readyState === "complete") {
+    schedule();
+  } else {
+    window.addEventListener("load", schedule);
+    // Safety net in case `load` is held up by a slow video or third-party js.
+    setTimeout(schedule, 3000);
+  }
+}
+
+// Wires every [data-open-modal="<modalId>"] button on the page to open a
+// calendar popup instead of the calendar sitting inline on the page. The
+// calendar iframe is only built the first time the modal is actually
+// opened (loadGhlCalendar's own container.dataset.ghlStarted guard makes
+// repeat opens a no-op), not on page load.
+function wireCalendarModal(modalId, embedContainerId, calendarUrl) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  const openModal = () => {
+    modal.classList.add("open");
+    document.body.style.overflow = "hidden";
+    loadGhlCalendar(embedContainerId, calendarUrl);
+  };
+  const closeModal = () => {
+    modal.classList.remove("open");
+    document.body.style.overflow = "";
+  };
+  document.querySelectorAll('[data-open-modal="' + modalId + '"]').forEach((btn) => {
+    btn.addEventListener("click", openModal);
+  });
+  modal.querySelectorAll("[data-close-modal]").forEach((btn) => {
+    btn.addEventListener("click", closeModal);
+  });
+  // Clicking the dark backdrop (not the modal card itself) also closes it.
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+  });
+}
+
+// Same open/close mechanics as wireCalendarModal(), for a modal that isn't
+// loading a calendar - e.g. a plain lead-capture form.
+function wireModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  const openModal = () => {
+    modal.classList.add("open");
+    document.body.style.overflow = "hidden";
+  };
+  const closeModal = () => {
+    modal.classList.remove("open");
+    document.body.style.overflow = "";
+  };
+  document.querySelectorAll('[data-open-modal="' + modalId + '"]').forEach((btn) => {
+    btn.addEventListener("click", openModal);
+  });
+  modal.querySelectorAll("[data-close-modal]").forEach((btn) => {
+    btn.addEventListener("click", closeModal);
+  });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+  });
+}
+
+// ---------- Sticky bottom CTA bar: appears on scroll-down, hides on
+// scroll-up (and stays hidden near the top, since the hero button is
+// already visible there). On mobile it also hides while the lead form
+// itself is on screen - otherwise the sticky button and the form's own
+// submit button double up. ----------
+function wireStickyCta(barId, formSelector) {
+  const bar = document.getElementById(barId);
+  if (!bar) return;
+  let lastY = window.scrollY;
+  let ticking = false;
+  let formInView = false;
+
+  const formEl = formSelector && document.querySelector(formSelector);
+  if (formEl && "IntersectionObserver" in window) {
+    new IntersectionObserver((entries) => {
+      formInView = entries[0].isIntersecting;
+      update();
+    }, { threshold: 0.15 }).observe(formEl);
+  }
+
+  function isMobile() {
+    return window.matchMedia("(max-width: 699px)").matches;
+  }
+
+  function update() {
+    const y = window.scrollY;
+    if (isMobile() && formInView) {
+      bar.classList.remove("visible");
+    } else if (y < 80) {
+      bar.classList.remove("visible");
+    } else if (y > lastY) {
+      bar.classList.add("visible");
+    } else {
+      bar.classList.remove("visible");
+    }
+    lastY = y;
+  }
+
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      requestAnimationFrame(() => { update(); ticking = false; });
+      ticking = true;
+    }
+  }, { passive: true });
+}
+
+// ---------- Tracking: no-op until an ID is set ----------
+// Meta Pixel and GA4 stay dormant when the config values are blank.
+// Do not load either library, and do not fire a request, without an ID.
+function initTracking() {
+  const cfg = window.RANKFLOW_CONFIG || {};
+  const pixelId = String(cfg.META_PIXEL_ID || "").trim();
+  if (pixelId && !/^REPLACE/i.test(pixelId)) {
+    !(function (f, b, e, v, n, t, s) {
+      if (f.fbq) return;
+      n = f.fbq = function () {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = !0;
+      n.version = "2.0";
+      n.queue = [];
+      t = b.createElement(e);
+      t.async = !0;
+      t.src = v;
+      s = b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t, s);
+    })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+    window.fbq("init", pixelId);
+    window.fbq("track", "PageView");
+  }
+  const ga4 = String(cfg.GA4_MEASUREMENT_ID || "").trim();
+  if (ga4 && !/^REPLACE/i.test(ga4) && !document.getElementById("ga4-loader")) {
+    const s = document.createElement("script");
+    s.id = "ga4-loader";
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(ga4);
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag("js", new Date());
+    window.gtag("config", ga4);
+  }
+}
+initTracking();
+
+// Sticky bar and any other secondary CTA should send the visitor back up to
+// the scan card/form rather than duplicating it further down the page.
+function wireScrollToScan(selector, inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  document.querySelectorAll(selector).forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const card = input.closest(".scan-card") || input;
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => input.focus(), 420);
+    });
+  });
+}

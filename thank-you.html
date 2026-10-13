@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
+<title>Your Service Area Qualifies | HVAC Marketing Center</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link rel="preload" as="image" href="assets/logo-transparent.png">
+<script src="js/config.js?v=1"></script>
+</head>
+<body>
+<div class="thankyou-header">
+  <a href="index.html"><img src="assets/logo-transparent.png" alt="HVAC Marketing Center" class="logo-img"></a>
+</div>
+<div class="wrap">
+  <div class="success-icon">
+    <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#fff" stroke-width="3"
+         stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+  </div>
+
+  <h1>Your Service Area Qualifies</h1>
+  <p class="page-copy">Good news, your area qualifies for 30+ inbound HVAC calls per month. Watch the 2-minute video below to see exactly how our guarantee works, then book your strategy call. Spots are limited to one HVAC company per service area, so we hold your area for 48 hours only.</p>
+
+  <hr class="divider">
+
+  <h2 id="stepBar">Watch This 2-Minute Video to See Exactly How the HVAC Guarantee Works</h2>
+  <div id="explainer-video"></div>
+
+  <a class="btn" href="book-tracked.html">Book Your Strategy Call</a>
+
+  <div class="cta-box" id="reachAndre">
+    <p class="cta-box-heading">Contact Andre Slyter</p>
+    <p class="reach-note">Andre will reach out shortly.</p>
+  </div>
+
+  <h2 id="testimonials">What HVAC Owners Are Saying</h2>
+  <div id="booking-testimonials"></div>
+
+  <footer>© 2026 HVAC Marketing Center, a WealthLink Media company | All Rights Reserved · <a href="privacy.html">Privacy Policy</a></footer>
+</div>
+
+<script src="js/testimonials-data.js?v=1"></script>
+<script src="js/main.js?v=1"></script>
+<script>
+  renderExplainerVideo("explainer-video", "stepBar", { autoplay: true });
+  renderTestimonials("booking-testimonials", window.THANK_YOU_TESTIMONIAL_IDS);
+
+  // Phone stays hidden until THANK_YOU_PHONE is set. Never show a stand-in number.
+  (function () {
+    var phone = String((window.RANKFLOW_CONFIG && window.RANKFLOW_CONFIG.THANK_YOU_PHONE) || "").trim();
+    if (!phone || /^REPLACE/i.test(phone)) return;
+    var box = document.getElementById("reachAndre");
+    var p = document.createElement("p");
+    p.className = "confirmed-phone-big";
+    var a = document.createElement("a");
+    a.href = "tel:" + phone.replace(/[^\d+]/g, "");
+    a.textContent = phone;
+    p.appendChild(a);
+    box.appendChild(p);
+  })();
+</script>
+
+</body></html>

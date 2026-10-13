@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book Your HVAC Strategy Call | HVAC Marketing Center</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link rel="preload" as="image" href="assets/logo-transparent.png">
+<script src="js/config.js?v=1"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo" id="logo"></div>
+
+  <p class="report-heading">Your HVAC service area is on hold for this strategy call</p>
+  <p class="report-subheading">Watch how the guarantee works, then book your strategy call below. One HVAC company per service area.</p>
+
+  <div class="step-bar" id="stepBar">⬇️ <u>Step 1:</u> Watch This 2 Minute Video ⬇️</div>
+  <div id="explainer-video"></div>
+
+  <p class="step2-heading" id="step2Heading"><u>Step 2:</u> Book Your Strategy Call Below</p>
+
+  <div class="calendar-card">
+    <div class="calendar-embed-container" id="calendarEmbed">
+      <p class="calendar-loading">Loading calendar…</p>
+    </div>
+  </div>
+
+  <h2 id="testimonials">What HVAC Owners Are Saying</h2>
+  <div id="booking-testimonials"></div>
+
+  <div class="calendar-card" id="calendarCardBottom">
+    <div class="calendar-embed-container" id="calendarEmbedBottom">
+      <p class="calendar-loading">Loading calendar…</p>
+    </div>
+  </div>
+
+  <footer>© 2026 HVAC Marketing Center, a WealthLink Media company | All Rights Reserved · <a href="privacy.html">Privacy Policy</a></footer>
+</div>
+
+<script src="js/testimonials-data.js?v=1"></script>
+<script src="js/main.js?v=1"></script>
+<script>
+  renderLogo(document.getElementById("logo"));
+  renderExplainerVideo("explainer-video", "stepBar");
+  loadGhlCalendar("calendarEmbed", window.RANKFLOW_CONFIG.GHL_CALENDAR_UNTRACKED_URL);
+  renderTestimonials("booking-testimonials", window.BOOKING_TESTIMONIAL_IDS);
+  loadGhlCalendar("calendarEmbedBottom", window.RANKFLOW_CONFIG.GHL_CALENDAR_UNTRACKED_URL);
+</script>
+
+</body></html>

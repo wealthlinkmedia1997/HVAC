@@ -1,0 +1,125 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get 30+ Exclusive HVAC Service Calls Every Month | HVAC Marketing Center</title>
+<meta name="description" content="HVAC Marketing Center ranks HVAC contractors at the top of Google Maps and AI search. 30+ exclusive inbound calls a month in 90 days, guaranteed. One HVAC company per service area.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
+<link rel="stylesheet" href="css/style.css?v=1">
+<script src="js/config.js?v=1"></script>
+</head>
+<body>
+<div class="thankyou-header">
+  <a href="index.html"><img src="assets/logo-transparent.png" alt="HVAC Marketing Center" class="logo-img"></a>
+</div>
+<p class="hero-kicker">For HVAC Contractors Doing $300K+ a Year</p>
+<div class="wrap">
+
+  <h1>Get 30+ Exclusive HVAC Service Calls Every Month in 90 Days, <span class="accent">Guaranteed</span></h1>
+
+  <p class="hero-sub">We rank HVAC companies at the top of Google Maps and AI search so homeowners call you first for AC repair, furnace installs and replacements. No shared leads. No long contracts. Only one HVAC company per service area.</p>
+
+  <div id="explainer-video"></div>
+
+  <div class="cta-box">
+    <span class="cta-badge">1 HVAC Company Per Area</span>
+    <p class="cta-box-heading">See If Your Service Area Qualifies</p>
+    <p class="modal-sub">Tell us your business name and mobile number. We'll check whether your service area is still open.</p>
+    <form id="leadFormTop" class="lead-form" novalidate>
+      <div class="field" data-step="businessName">
+        <div class="field-inner">
+          <label for="topBusinessName">Business Name</label>
+          <div class="autocomplete-wrapper">
+            <input type="text" id="topBusinessName" name="businessName" placeholder="Desert Air Heating &amp; Cooling"
+                   autocomplete="organization" role="combobox" aria-autocomplete="list"
+                   aria-controls="topSuggestions" aria-expanded="false">
+            <span class="ac-spinner" hidden></span>
+            <ul class="ac-suggestions" id="topSuggestions" role="listbox" hidden></ul>
+          </div>
+          <input type="hidden" name="placeId" value="">
+          <input type="hidden" name="placeAddress" value="">
+        </div>
+      </div>
+      <div class="field" data-step="firstName">
+        <div class="field-inner">
+          <label for="topFirstName">Full Name</label>
+          <input type="text" id="topFirstName" name="firstName" placeholder="John Smith" autocomplete="name">
+        </div>
+      </div>
+      <div class="field" data-step="phone">
+        <div class="field-inner">
+          <label for="topPhone">Mobile Phone</label>
+          <input type="tel" id="topPhone" name="phone" placeholder="(555) 123-4567" autocomplete="tel" inputmode="tel">
+        </div>
+      </div>
+      <div class="field" data-step="submit">
+        <div class="field-inner">
+          <button type="submit" class="btn">Check If My Area Is Available</button>
+          <p class="fine-print">One HVAC company per service area. No shared leads.</p>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <hr class="divider">
+
+  <h2 id="testimonials">What HVAC Owners Are Saying</h2>
+  <div id="booking-testimonials"></div>
+
+  <div class="cta-box">
+    <span class="cta-badge">1 HVAC Company Per Area</span>
+    <p class="cta-box-heading">See If Your Service Area Qualifies</p>
+    <p class="modal-sub">Same check. Tell us where you operate and we'll see if that area is still open for one HVAC company.</p>
+    <form id="leadFormBottom" class="lead-form" novalidate>
+      <div class="field" data-step="businessName">
+        <div class="field-inner">
+          <label for="bottomBusinessName">Business Name</label>
+          <div class="autocomplete-wrapper">
+            <input type="text" id="bottomBusinessName" name="businessName" placeholder="Desert Air Heating &amp; Cooling"
+                   autocomplete="organization" role="combobox" aria-autocomplete="list"
+                   aria-controls="bottomSuggestions" aria-expanded="false">
+            <span class="ac-spinner" hidden></span>
+            <ul class="ac-suggestions" id="bottomSuggestions" role="listbox" hidden></ul>
+          </div>
+          <input type="hidden" name="placeId" value="">
+          <input type="hidden" name="placeAddress" value="">
+        </div>
+      </div>
+      <div class="field" data-step="firstName">
+        <div class="field-inner">
+          <label for="bottomFirstName">Full Name</label>
+          <input type="text" id="bottomFirstName" name="firstName" placeholder="John Smith" autocomplete="name">
+        </div>
+      </div>
+      <div class="field" data-step="phone">
+        <div class="field-inner">
+          <label for="bottomPhone">Mobile Phone</label>
+          <input type="tel" id="bottomPhone" name="phone" placeholder="(555) 123-4567" autocomplete="tel" inputmode="tel">
+        </div>
+      </div>
+      <div class="field" data-step="submit">
+        <div class="field-inner">
+          <button type="submit" class="btn">Check If My Area Is Available</button>
+          <p class="fine-print">One HVAC company per service area. No shared leads.</p>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <footer>© 2026 HVAC Marketing Center, a WealthLink Media company | All Rights Reserved · <a href="privacy.html">Privacy Policy</a></footer>
+</div>
+
+<script src="js/testimonials-data.js?v=1"></script>
+<script src="js/main.js?v=1"></script>
+<script>
+  renderExplainerVideo("explainer-video", null, { autoplay: true });
+  renderTestimonials("booking-testimonials", window.HOME_TESTIMONIAL_IDS);
+  [document.getElementById("leadFormTop"), document.getElementById("leadFormBottom")].forEach((f) => {
+    wireLeadForm(f);
+    wireProgressiveForm(f);
+  });
+  wireBusinessAutocomplete(document.getElementById("topBusinessName"));
+  wireBusinessAutocomplete(document.getElementById("bottomBusinessName"));
+</script>
+
+</body></html>
